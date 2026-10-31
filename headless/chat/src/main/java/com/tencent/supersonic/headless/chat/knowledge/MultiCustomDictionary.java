@@ -175,6 +175,7 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
         }
     }
 
+    @Override
     public boolean load(String... path) {
         this.path = path;
         long start = System.currentTimeMillis();

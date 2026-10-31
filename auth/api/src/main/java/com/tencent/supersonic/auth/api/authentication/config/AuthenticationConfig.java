@@ -60,7 +60,8 @@ public class AuthenticationConfig {
                     "s2.authentication.token.appSecret must contain comma-separated appKey:secret mappings");
         }
         if (secrets.isEmpty()) {
-            throw new IllegalArgumentException("s2.authentication.token.appSecret must not be empty");
+            throw new IllegalArgumentException(
+                    "s2.authentication.token.appSecret must not be empty");
         }
         for (Map.Entry<String, String> entry : secrets.entrySet()) {
             String secret = entry.getValue();

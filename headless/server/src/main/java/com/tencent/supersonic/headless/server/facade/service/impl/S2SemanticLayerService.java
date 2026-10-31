@@ -84,6 +84,7 @@ public class S2SemanticLayerService implements SemanticLayerService {
         this.translatorConfig = translatorConfig;
     }
 
+    @Override
     public DataSetSchema getDataSetSchema(Long id) {
         return schemaService.getDataSetSchema(id);
     }

@@ -32,6 +32,7 @@ public class EmbeddingMapper extends BaseMapper {
         return b0 || b1;
     }
 
+    @Override
     public void doMap(ChatQueryContext chatQueryContext) {
 
         // TODO: 如果是在LOOSE执行过了，那么在LLM_OR_RULE阶段可以不用执行，所以这里缺乏一个状态来传递，暂时先忽略这个浪费行为吧

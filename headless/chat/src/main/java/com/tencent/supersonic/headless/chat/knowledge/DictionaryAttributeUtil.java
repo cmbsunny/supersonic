@@ -20,16 +20,16 @@ public class DictionaryAttributeUtil {
             CoreDictionary.Attribute add) {
         Map<Nature, Integer> map = new HashMap<>();
         Map<Nature, String> originalMap = new HashMap<>();
-        IntStream.range(0, old.nature.length).boxed().forEach(i -> {
-            map.put(old.nature[i], old.frequency[i]);
+        IntStream.range(0, old.natures.length).boxed().forEach(i -> {
+            map.put(old.natures[i], old.frequencies[i]);
             if (Objects.nonNull(old.originals)) {
-                originalMap.put(old.nature[i], old.originals[i]);
+                originalMap.put(old.natures[i], old.originals[i]);
             }
         });
-        IntStream.range(0, add.nature.length).boxed().forEach(i -> {
-            map.put(add.nature[i], add.frequency[i]);
+        IntStream.range(0, add.natures.length).boxed().forEach(i -> {
+            map.put(add.natures[i], add.frequencies[i]);
             if (Objects.nonNull(add.originals)) {
-                originalMap.put(add.nature[i], add.originals[i]);
+                originalMap.put(add.natures[i], add.originals[i]);
             }
         });
         List<Map.Entry<Nature, Integer>> list =

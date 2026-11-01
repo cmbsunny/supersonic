@@ -199,11 +199,11 @@ public class HanlpHelper {
         getDynamicCustomDictionary().remove(dictWord.getWord());
         StringBuilder sb = new StringBuilder();
         List<Nature> natureList = new ArrayList<>();
-        for (int i = 0; i < attribute.nature.length; i++) {
-            if (!attribute.nature[i].toString().equals(dictWord.getNature())) {
-                sb.append(attribute.nature[i].toString() + " ");
-                sb.append(attribute.frequency[i] + " ");
-                natureList.add((attribute.nature[i]));
+        for (int i = 0; i < attribute.natures.length; i++) {
+            if (!attribute.natures[i].toString().equals(dictWord.getNature())) {
+                sb.append(attribute.natures[i].toString() + " ");
+                sb.append(attribute.frequencies[i] + " ");
+                natureList.add((attribute.natures[i]));
             }
         }
         String natureWithFrequency = sb.toString();

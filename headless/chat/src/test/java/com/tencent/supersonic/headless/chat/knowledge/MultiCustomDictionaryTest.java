@@ -75,10 +75,10 @@ class MultiCustomDictionaryTest {
         CoreDictionary.Attribute alice = map.get("alice");
         assertNotNull(alice);
         // line: "alice _1_2 6 _2_3 9" -> 2 natures, totalFrequency = 6 + 9 = 15
-        assertEquals(2, alice.nature.length);
+        assertEquals(2, alice.natures.length);
         assertEquals(15, alice.totalFrequency);
 
-        List<String> aliceNatures = java.util.Arrays.stream(alice.nature).map(Nature::toString)
+        List<String> aliceNatures = java.util.Arrays.stream(alice.natures).map(Nature::toString)
                 .collect(Collectors.toList());
         assertTrue(aliceNatures.contains("_1_2"));
         assertTrue(aliceNatures.contains("_2_3"));
@@ -95,15 +95,15 @@ class MultiCustomDictionaryTest {
 
         CoreDictionary.Attribute tom = map.get("tom");
         assertNotNull(tom);
-        assertEquals(2, tom.nature.length);
+        assertEquals(2, tom.natures.length);
 
-        List<String> tomNatures = java.util.Arrays.stream(tom.nature).map(Nature::toString)
+        List<String> tomNatures = java.util.Arrays.stream(tom.natures).map(Nature::toString)
                 .collect(Collectors.toList());
         assertTrue(tomNatures.contains("_1_2"));
         assertTrue(tomNatures.contains("_3_4"));
         // DictionaryAttributeUtil sorts merged natures by frequency desc -> highest (8) first
-        assertEquals(8, tom.frequency[0]);
-        assertEquals("_3_4", tom.nature[0].toString());
+        assertEquals(8, tom.frequencies[0]);
+        assertEquals("_3_4", tom.natures[0].toString());
         // totalFrequency is the highest frequency among the merged natures
         assertEquals(8, tom.totalFrequency);
     }

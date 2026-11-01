@@ -336,9 +336,9 @@ public abstract class WordBasedSegment extends Segment {
     }
 
     protected void addTerms(List<Term> terms, Vertex vertex, int offset) {
-        for (int i = 0; i < vertex.attribute.nature.length; i++) {
-            Term term = new Term(vertex.realWord, vertex.attribute.nature[i]);
-            term.setFrequency(vertex.attribute.frequency[i]);
+        for (int i = 0; i < vertex.attribute.natures.length; i++) {
+            Term term = new Term(vertex.realWord, vertex.attribute.natures[i]);
+            term.setFrequency(vertex.attribute.frequencies[i]);
             term.offset = offset;
             terms.add(term);
         }

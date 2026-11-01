@@ -65,9 +65,9 @@ public class CoreDictionary {
                 int natureCount = (param.length - 1) / 2;
                 Attribute attribute = new Attribute(natureCount);
                 for (int i = 0; i < natureCount; ++i) {
-                    attribute.nature[i] = Nature.create(param[1 + 2 * i]);
-                    attribute.frequency[i] = Integer.parseInt(param[2 + 2 * i]);
-                    attribute.totalFrequency += attribute.frequency[i];
+                    attribute.natures[i] = Nature.create(param[1 + 2 * i]);
+                    attribute.frequencies[i] = Integer.parseInt(param[2 + 2 * i]);
+                    attribute.totalFrequency += attribute.frequencies[i];
                 }
                 map.put(param[0], attribute);
                 totalFrequency += attribute.totalFrequency;
@@ -84,10 +84,10 @@ public class CoreDictionary {
                 out.writeInt(attributeList.size());
                 for (Attribute attribute : attributeList) {
                     out.writeInt(attribute.totalFrequency);
-                    out.writeInt(attribute.nature.length);
-                    for (int i = 0; i < attribute.nature.length; ++i) {
-                        out.writeInt(attribute.nature[i].ordinal());
-                        out.writeInt(attribute.frequency[i]);
+                    out.writeInt(attribute.natures.length);
+                    for (int i = 0; i < attribute.natures.length; ++i) {
+                        out.writeInt(attribute.natures[i].ordinal());
+                        out.writeInt(attribute.frequencies[i]);
                     }
                 }
                 trie.save(out);
@@ -131,8 +131,8 @@ public class CoreDictionary {
                 attributes[i] = new Attribute(length);
                 attributes[i].totalFrequency = currentTotalFrequency;
                 for (int j = 0; j < length; ++j) {
-                    attributes[i].nature[j] = natureIndexArray[byteArray.nextInt()];
-                    attributes[i].frequency[j] = byteArray.nextInt();
+                    attributes[i].natures[j] = natureIndexArray[byteArray.nextInt()];
+                    attributes[i].frequencies[j] = byteArray.nextInt();
                 }
             }
             if (!trie.load(byteArray, attributes)) {
@@ -202,41 +202,42 @@ public class CoreDictionary {
     public static class Attribute implements Serializable {
 
         /** 词性列表 */
-        public Nature[] nature;
-        /** 词性对应的词频 */
-        public int[] frequency;
+        public Nature[] natures;
+        /** 词性对应的词频列表 */
+        public int[] frequencies;
 
         public int totalFrequency;
         public String[] originals;
         public String original = null;
 
         public Attribute(int size) {
-            nature = new Nature[size];
-            frequency = new int[size];
+            natures = new Nature[size];
+            frequencies = new int[size];
             originals = new String[size];
         }
 
-        public Attribute(Nature[] nature, int[] frequency) {
-            this.nature = nature;
-            this.frequency = frequency;
+        public Attribute(Nature[] natures, int[] frequencies) {
+            this.natures = natures;
+            this.frequencies = frequencies;
         }
 
         public Attribute(Nature nature, int frequency) {
             this(1);
-            this.nature[0] = nature;
-            this.frequency[0] = frequency;
+            this.natures[0] = nature;
+            this.frequencies[0] = frequency;
             totalFrequency = frequency;
         }
 
-        public Attribute(Nature[] nature, int[] frequency, int totalFrequency) {
-            this.nature = nature;
-            this.frequency = frequency;
+        public Attribute(Nature[] natures, int[] frequencies, int totalFrequency) {
+            this.natures = natures;
+            this.frequencies = frequencies;
             this.totalFrequency = totalFrequency;
         }
 
-        public Attribute(Nature[] nature, int[] frequency, String[] originals, int totalFrequency) {
-            this.nature = nature;
-            this.frequency = frequency;
+        public Attribute(Nature[] natures, int[] frequencies, String[] originals,
+                int totalFrequency) {
+            this.natures = natures;
+            this.frequencies = frequencies;
             this.originals = originals;
             this.totalFrequency = totalFrequency;
         }
@@ -259,9 +260,9 @@ public class CoreDictionary {
                 int natureCount = param.length / 2;
                 Attribute attribute = new Attribute(natureCount);
                 for (int i = 0; i < natureCount; ++i) {
-                    attribute.nature[i] = Nature.create(param[2 * i]);
-                    attribute.frequency[i] = Integer.parseInt(param[1 + 2 * i]);
-                    attribute.totalFrequency += attribute.frequency[i];
+                    attribute.natures[i] = Nature.create(param[2 * i]);
+                    attribute.frequencies[i] = Integer.parseInt(param[1 + 2 * i]);
+                    attribute.totalFrequency += attribute.frequencies[i];
                 }
                 return attribute;
             } catch (Exception e) {
@@ -284,8 +285,8 @@ public class CoreDictionary {
             Attribute attribute = new Attribute(length);
             attribute.totalFrequency = currentTotalFrequency;
             for (int j = 0; j < length; ++j) {
-                attribute.nature[j] = natureIndexArray[byteArray.nextInt()];
-                attribute.frequency[j] = byteArray.nextInt();
+                attribute.natures[j] = natureIndexArray[byteArray.nextInt()];
+                attribute.frequencies[j] = byteArray.nextInt();
             }
 
             return attribute;
@@ -315,9 +316,9 @@ public class CoreDictionary {
          */
         public int getNatureFrequency(final Nature nature) {
             int i = 0;
-            for (Nature pos : this.nature) {
+            for (Nature pos : this.natures) {
                 if (nature == pos) {
-                    return frequency[i];
+                    return frequencies[i];
                 }
                 ++i;
             }
@@ -341,7 +342,7 @@ public class CoreDictionary {
          * @return
          */
         public boolean hasNatureStartsWith(String prefix) {
-            for (Nature n : nature) {
+            for (Nature n : natures) {
                 if (n.startsWith(prefix)) {
                     return true;
                 }
@@ -352,18 +353,18 @@ public class CoreDictionary {
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < nature.length; ++i) {
-                sb.append(nature[i]).append(' ').append(frequency[i]).append(' ');
+            for (int i = 0; i < natures.length; ++i) {
+                sb.append(natures[i]).append(' ').append(frequencies[i]).append(' ');
             }
             return sb.toString();
         }
 
         public void save(DataOutputStream out) throws IOException {
             out.writeInt(totalFrequency);
-            out.writeInt(nature.length);
-            for (int i = 0; i < nature.length; ++i) {
-                out.writeInt(nature[i].ordinal());
-                out.writeInt(frequency[i]);
+            out.writeInt(natures.length);
+            for (int i = 0; i < natures.length; ++i) {
+                out.writeInt(natures[i].ordinal());
+                out.writeInt(frequencies[i]);
             }
         }
 
@@ -381,8 +382,8 @@ public class CoreDictionary {
             if (originals == null || originals.length == 0 || find == null) {
                 return null;
             }
-            for (int i = 0; i < nature.length; i++) {
-                if (find.equals(nature[i]) && originals.length > i) {
+            for (int i = 0; i < natures.length; i++) {
+                if (find.equals(natures[i]) && originals.length > i) {
                     return originals[i];
                 }
             }

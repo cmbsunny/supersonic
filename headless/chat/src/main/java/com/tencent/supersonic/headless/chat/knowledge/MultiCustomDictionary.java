@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -39,18 +38,18 @@ import static com.hankcs.hanlp.utility.Predefine.logger;
 
 public class MultiCustomDictionary extends DynamicCustomDictionary {
 
-    public static int MAX_SIZE = 10;
+    public static int MAX_SIZE = 10000;
     public static Boolean removeDuplicates = true;
     public static ConcurrentHashMap<String, PriorityBlockingQueue<Term>> NATURE_TO_VALUES =
             new ConcurrentHashMap<>();
-    private static boolean addToSuggesterTrie = true;
+    private static boolean addToSuggestTrie = true;
 
     public MultiCustomDictionary() {
         this(HanLP.Config.CustomDictionaryPath);
     }
 
-    public MultiCustomDictionary(String... path) {
-        super(path);
+    public MultiCustomDictionary(String... paths) {
+        super(paths);
     }
 
     /**
@@ -60,12 +59,12 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
      * @param defaultNature
      * @param map
      * @param customNatureCollector
-     * @param addToSuggeterTrie
+     * @param addToSuggestTrie
      * @return
      */
     public static boolean load(String path, Nature defaultNature,
             TreeMap<String, CoreDictionary.Attribute> map,
-            LinkedHashSet<Nature> customNatureCollector, boolean addToSuggeterTrie) {
+            LinkedHashSet<Nature> customNatureCollector, boolean addToSuggestTrie) {
         try {
             String splitter = "\\s";
             if (path.endsWith(".csv")) {
@@ -106,7 +105,6 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
                 String word = getWordBySpace(param[0]);
                 if (isLetters) {
                     original = word;
-                    // word = word.toLowerCase();
                     // 加入小写别名
                     if (!original.equals(word.toLowerCase())) {
                         DictWord dictWord = new DictWord();
@@ -126,8 +124,6 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
                                 logger.warning(path + " : 非标准文件，不存入KnowledgeBaseService");
                                 return true;
                             }
-
-
                         }
                     }
                 }
@@ -137,33 +133,32 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
                     attribute = new CoreDictionary.Attribute(natureCount);
 
                     for (int i = 0; i < natureCount; ++i) {
-                        attribute.nature[i] = LexiconUtility.convertStringToNature(param[1 + 2 * i],
-                                customNatureCollector);
-                        attribute.frequency[i] = Integer.parseInt(param[2 + 2 * i]);
+                        attribute.natures[i] = LexiconUtility
+                                .convertStringToNature(param[1 + 2 * i], customNatureCollector);
+                        attribute.frequencies[i] = Integer.parseInt(param[2 + 2 * i]);
                         attribute.originals[i] = original;
-                        attribute.totalFrequency += attribute.frequency[i];
+                        attribute.totalFrequency += attribute.frequencies[i];
                     }
                 }
-                // attribute.original = original;
 
                 if (removeDuplicates && map.containsKey(word)) {
                     attribute = DictionaryAttributeUtil.getAttribute(map.get(word), attribute);
                 }
                 map.put(word, attribute);
-                if (addToSuggeterTrie) {
+                if (addToSuggestTrie) {
                     SearchService.put(word, attribute);
                 }
-                for (int i = 0; i < attribute.nature.length; i++) {
-                    Nature nature = attribute.nature[i];
+                for (int i = 0; i < attribute.natures.length; i++) {
+                    Nature nature = attribute.natures[i];
                     PriorityBlockingQueue<Term> priorityQueue =
                             NATURE_TO_VALUES.get(nature.toString());
                     if (Objects.isNull(priorityQueue)) {
-                        priorityQueue = new PriorityBlockingQueue<>(MAX_SIZE,
+                        priorityQueue = new PriorityBlockingQueue<>(10,
                                 Comparator.comparingInt(Term::getFrequency).reversed());
                         NATURE_TO_VALUES.put(nature.toString(), priorityQueue);
                     }
                     Term term = new Term(word, nature);
-                    term.setFrequency(attribute.frequency[i]);
+                    term.setFrequency(attribute.frequencies[i]);
                     if (!priorityQueue.contains(term) && priorityQueue.size() < MAX_SIZE) {
                         priorityQueue.add(term);
                     }
@@ -176,16 +171,16 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
     }
 
     @Override
-    public boolean load(String... path) {
-        this.path = path;
+    public boolean load(String... paths) {
+        this.path = paths;
         long start = System.currentTimeMillis();
-        if (!this.loadMainDictionary(path[0])) {
-            logger.warning("自定义词典" + Arrays.toString(path) + "加载失败");
+        if (!this.loadMainDictionary(paths[0])) {
+            logger.warning("自定义词典" + Arrays.toString(paths) + "加载失败");
             return false;
         } else {
             logger.info("自定义词典加载成功:" + this.dat.size() + "个词条，耗时"
                     + (System.currentTimeMillis() - start) + "ms");
-            this.path = path;
+            this.path = paths;
             return true;
         }
     }
@@ -207,8 +202,8 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
         if (loadDat(mainPath, dat)) {
             return true;
         } else {
-            TreeMap<String, CoreDictionary.Attribute> map = new TreeMap();
-            LinkedHashSet customNatureCollector = new LinkedHashSet();
+            TreeMap<String, CoreDictionary.Attribute> map = new TreeMap<>();
+            LinkedHashSet<Nature> customNatureCollector = new LinkedHashSet<>();
 
             try {
                 for (String p : path) {
@@ -244,12 +239,13 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
 
                 logger.info("正在构建DoubleArrayTrie……");
                 dat.build(map);
+
                 if (addToSuggestTrie) {
                     // SearchService.save();
                 }
                 if (isCache) {
-                    // 缓存成dat文件，下次加载会快很多
-                    logger.info("正在缓存词典为dat文件……");
+                    // 缓存成 .bin 文件，下次加载会快很多
+                    logger.info("正在缓存词典为 .bin 文件……");
                     // 缓存值文件
                     List<CoreDictionary.Attribute> attributeList =
                             new LinkedList<CoreDictionary.Attribute>();
@@ -294,7 +290,8 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
     }
 
     public boolean loadMainDictionary(String mainPath) {
-        return loadMainDictionary(mainPath, this.path, this.dat, true, addToSuggesterTrie);
+        // 关闭 .bin 缓存
+        return loadMainDictionary(mainPath, this.path, this.dat, false, addToSuggestTrie);
     }
 
     public static boolean loadDat(String path, DoubleArrayTrie<CoreDictionary.Attribute> dat) {
@@ -335,8 +332,8 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
                         attributes[i].totalFrequency = currentTotalFrequency;
 
                         for (int j = 0; j < length; ++j) {
-                            attributes[i].nature[j] = natureIndexArray[byteArray.nextInt()];
-                            attributes[i].frequency[j] = byteArray.nextInt();
+                            attributes[i].natures[j] = natureIndexArray[byteArray.nextInt()];
+                            attributes[i].frequencies[j] = byteArray.nextInt();
                         }
                     }
 
@@ -388,8 +385,9 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
             IOUtil.deleteFile(this.path[0] + ".bin");
             Boolean loadCacheOk = this.loadDat(this.path[0], this.path, this.dat);
             if (!loadCacheOk) {
-                return this.loadMainDictionary(this.path[0], this.path, this.dat, true,
-                        addToSuggesterTrie);
+                // 关闭 .bin 缓存
+                return this.loadMainDictionary(this.path[0], this.path, this.dat, false,
+                        addToSuggestTrie);
             }
         }
         return false;
@@ -431,7 +429,7 @@ public class MultiCustomDictionary extends DynamicCustomDictionary {
                 this.trie.put(word, att);
                 // return true;
             }
-            if (addToSuggesterTrie) {
+            if (addToSuggestTrie) {
                 SearchService.put(word, att);
             }
             return true;

@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -155,7 +154,7 @@ public class SearchService {
     }
 
     public static void put(String key, CoreDictionary.Attribute attribute) {
-        trie.put(key, getValue(attribute.nature));
+        trie.put(key, getValue(attribute.natures));
     }
 
     public static void loadSuffix(List<DictWord> suffixes) {
@@ -179,7 +178,7 @@ public class SearchService {
     }
 
     public static void putSuffix(String key, CoreDictionary.Attribute attribute) {
-        Nature[] nature = attribute.nature;
+        Nature[] nature = attribute.natures;
         suffixTrie.put(key, getValue(nature));
     }
 

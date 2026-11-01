@@ -87,19 +87,19 @@ class CustomDictionaryFileTest {
 
         // DATASET —— nature 为 _<dataSetId>
         assertTrue(map.containsKey("销售分析"));
-        assertEquals("_1", map.get("销售分析").nature[0].toString());
+        assertEquals("_1", map.get("销售分析").natures[0].toString());
         // METRIC —— nature 为 _<modelId>_<elementId>_metric
         assertTrue(map.containsKey("销售额"));
-        assertEquals("_1_101_metric", map.get("销售额").nature[0].toString());
+        assertEquals("_1_101_metric", map.get("销售额").natures[0].toString());
         // DIMENSION —— nature 为 _<modelId>_<elementId>_dimension
         assertTrue(map.containsKey("部门"));
-        assertEquals("_1_1_dimension", map.get("部门").nature[0].toString());
+        assertEquals("_1_1_dimension", map.get("部门").natures[0].toString());
         // TERM —— nature 为 _<dataSetId>_<elementId>_term
         assertTrue(map.containsKey("环比增长"));
-        assertEquals("_1_301_term", map.get("环比增长").nature[0].toString());
+        assertEquals("_1_301_term", map.get("环比增长").natures[0].toString());
         // VALUE —— nature 为 _<modelId>_<elementId>（无后缀）
         assertTrue(map.containsKey("北京"));
-        assertEquals("_1_201", map.get("北京").nature[0].toString());
+        assertEquals("_1_201", map.get("北京").natures[0].toString());
     }
 
     /** 多词性词条必须携带两个 nature，且词频求和。 */
@@ -112,8 +112,8 @@ class CustomDictionaryFileTest {
         // 行: "访问 _1_106_metric 100000 _2_112_metric 100000"
         CoreDictionary.Attribute visit = map.get("访问");
         assertNotNull(visit);
-        assertEquals(2, visit.nature.length);
-        List<String> natures = Arrays.stream(visit.nature).map(Nature::toString).toList();
+        assertEquals(2, visit.natures.length);
+        List<String> natures = Arrays.stream(visit.natures).map(Nature::toString).toList();
         assertTrue(natures.contains("_1_106_metric"));
         assertTrue(natures.contains("_2_112_metric"));
         assertEquals(100000 + 100000, visit.totalFrequency);
@@ -132,8 +132,8 @@ class CustomDictionaryFileTest {
         // 单段大写维度值词保留原大小写
         assertTrue(map.containsKey("HR"), "HR 应在 map 中");
         assertTrue(map.containsKey("App"), "App 应在 map 中");
-        assertEquals("_1_1", map.get("HR").nature[0].toString());
-        assertEquals("_1_204", map.get("App").nature[0].toString());
+        assertEquals("_1_1", map.get("HR").natures[0].toString());
+        assertEquals("_1_204", map.get("App").natures[0].toString());
 
         // 以 "#" 分隔的词在 map 键中被还原为空格
         assertTrue(map.containsKey("New York"), "New#York 应被还原为 'New York'");
@@ -252,10 +252,10 @@ class CustomDictionaryFileTest {
 
         for (Map.Entry<String, CoreDictionary.Attribute> e : map.entrySet()) {
             CoreDictionary.Attribute attr = e.getValue();
-            for (int i = 0; i < attr.nature.length; i++) {
+            for (int i = 0; i < attr.natures.length; i++) {
                 pairCount++;
-                String natureStr = attr.nature[i].toString();
-                int freq = attr.frequency[i];
+                String natureStr = attr.natures[i].toString();
+                int freq = attr.frequencies[i];
                 String original =
                         (attr.originals != null && i < attr.originals.length) ? attr.originals[i]
                                 : null;
